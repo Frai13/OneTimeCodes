@@ -27,6 +27,9 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
       shell: pwsh
+    - name: Restore NuGet packages
+      run: nuget restore
+      shell: pwsh
     - name: Build
       run: dotnet build --configuration Release --no-restore
       shell: pwsh
