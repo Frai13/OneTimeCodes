@@ -14,7 +14,7 @@ namespace Examples
             uint start = args.Length >= 1 ? UInt32.Parse(args[0]) : 0;
             uint number = args.Length >= 2 ? UInt32.Parse(args[1]) : 3;
 
-            TokenGenerator generator = new TokenGenerator(0, 3, 5);
+            TokenGenerator generator = new TokenGenerator(0, 3);
             
             List<string> code_list = generator.GetCodes(start, number);
             generator.GenerateCodes(start, number);

@@ -26,17 +26,15 @@ namespace OneTimeCodes
     {
         protected Random Random;
         protected uint Length;
-        protected uint MaxNumber;
         protected CodeType CodeType;
 
         internal List<byte> BytesSaved;
         internal static string fileName = "codes";
 
-        public TokenGenerator(int seed, uint length, uint maxNumber, CodeType codeType = CodeType.ALL)
+        public TokenGenerator(int seed, uint length, CodeType codeType = CodeType.ALL)
         {
             this.Random = new Random(seed);
             this.Length = length;
-            this.MaxNumber = maxNumber;
             this.CodeType = codeType;
             this.BytesSaved = new List<byte>();
         }
@@ -45,7 +43,6 @@ namespace OneTimeCodes
         {
             uint endNumber = start + number;
             if (Length == 0) throw new ArgumentOutOfRangeException("Length", $"Length should be greater than 0.");
-            if (endNumber > MaxNumber) throw new ArgumentOutOfRangeException("num", $"Maximum number of codes exceeded: {MaxNumber}.");
 
             uint endFirstByte = endNumber * Length;
 
