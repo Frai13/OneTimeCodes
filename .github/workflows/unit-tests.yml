@@ -1,0 +1,46 @@
+name: Unit Tests
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on:
+  push:
+    tags: [ '*' ]
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_call:
+
+permissions:
+      id-token: write
+      contents: read
+      checks: write
+
+jobs:
+  tests:
+    name: Unit Testing
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout  
+      uses: actions/checkout@v1
+    - name: Clean
+      run: dotnet clean && dotnet nuget locals all --clear
+      shell: pwsh
+    - name: Restore dependencies
+      run: dotnet restore
+      shell: pwsh
+    - name: Restore NuGet packages
+      run: nuget restore
+      shell: pwsh
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+      shell: pwsh
+    - name: Test
+      run: dotnet test --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" || true
+      shell: pwsh
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Tests results
+        path: "**/test-results.trx"                            
+        reporter: dotnet-trx
+        fail-on-error: true

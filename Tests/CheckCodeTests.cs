@@ -56,9 +56,12 @@ namespace Tests
         [Test]
         public void TestGenerateCodesPath()
         {
-            var dir = new DirectoryInfo("example");
-            dir.Attributes = dir.Attributes & ~FileAttributes.ReadOnly;
-            dir.Delete(true);
+            if (File.Exists("example"))
+            {
+                var dir = new DirectoryInfo("example");
+                dir.Attributes = dir.Attributes & ~FileAttributes.ReadOnly;
+                dir.Delete(true);
+            }
 
             generator = new TokenGenerator(0, 6, 3, CodeType.ALL);
             Assert.IsFalse(generator.GenerateCodes(0, 3, "example/"));
