@@ -7,6 +7,11 @@ using OneTimeCodes;
 
 namespace Examples
 {
+    /// <summary>
+    /// In this example, TokenGenerator is used to generate codes of 3 chars using seed "0".
+    /// By default, it generates 3 codes starting at index 0. Once "codes" file is created, it waits for user
+    /// to write a code to be checked (until user presses CTRL+C).
+    /// </summary>
     internal class GenerateAndVerify
     {
         static void Main(string[] args)

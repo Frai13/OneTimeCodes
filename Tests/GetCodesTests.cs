@@ -4,6 +4,7 @@ using OneTimeCodes;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Tests
@@ -11,7 +12,6 @@ namespace Tests
     public class GetCodesTests
     {
         private TokenGenerator generator;
-        private Exception ex;
 
         [SetUp]
         public void Setup()
@@ -36,13 +36,11 @@ namespace Tests
         }
 
         [Test]
-        public void TestOutOfRangeException()
+        public void TestOutOfRange()
         {
             generator = new TokenGenerator(0, 0);
-            ex = Assert.Throws<ArgumentOutOfRangeException>(() => { generator.GetCodes(0, 1); });
-            Assert.That(ex.Message.StartsWith("Length should be greater than 0."));
-            ex = Assert.Throws<ArgumentOutOfRangeException>(() => { generator.GetCodes(1, 1); });
-            Assert.That(ex.Message.StartsWith("Length should be greater than 0."));
+            Assert.IsFalse(generator.GetCodes(0, 1).Any());
+            Assert.IsFalse(generator.GetCodes(1, 1).Any());
         }
 
         [Test]

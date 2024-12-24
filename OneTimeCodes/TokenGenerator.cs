@@ -12,6 +12,9 @@ using Newtonsoft.Json;
 [assembly: InternalsVisibleTo("Tests"), InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace OneTimeCodes
 {
+    /// <summary>
+    /// Enum that describes the different characteres that can be found on the generated code
+    /// </summary>
     public enum CodeType
     {
         ALL = 0,
@@ -31,6 +34,12 @@ namespace OneTimeCodes
         internal List<byte> BytesSaved;
         internal static string fileName = "codes";
 
+        /// <summary>
+        /// TokenGenerator constructor
+        /// </summary>
+        /// <param name="seed">Pseudorandom generator</param>
+        /// <param name="length">Length of the generated code</param>
+        /// <param name="codeType"><see cref="CodeType"/> enum</param>
         public TokenGenerator(int seed, uint length, CodeType codeType = CodeType.ALL)
         {
             this.Random = new Random(seed);
@@ -39,10 +48,16 @@ namespace OneTimeCodes
             this.BytesSaved = new List<byte>();
         }
 
+        /// <summary>
+        /// Get a list of <paramref name="number"/> codes from <paramref name="start"/> index
+        /// </summary>
+        /// <param name="start">Start index</param>
+        /// <param name="number">Number of codes to generate</param>
+        /// <returns>List of codes generated</returns>
         public List<string> GetCodes(uint start, uint number)
         {
             uint endNumber = start + number;
-            if (Length == 0) throw new ArgumentOutOfRangeException("Length", $"Length should be greater than 0.");
+            if (Length == 0) return new List<string>();
 
             uint endFirstByte = endNumber * Length;
 
@@ -94,6 +109,12 @@ namespace OneTimeCodes
             return result;
         }
 
+        /// <summary>
+        /// Create a file at <paramref name="path"/> containing <paramref name="number"/> codes from <paramref name="start"/> index
+        /// </summary>
+        /// <param name="start">Start index</param>
+        /// <param name="number">Number of codes to generate</param>
+        /// <returns>True if success</returns>
         public bool GenerateCodes(uint start, uint number, string path = "")
         {
             path = path == "" ? "./" : path;
@@ -115,10 +136,15 @@ namespace OneTimeCodes
             return true;
         }
 
+        /// <summary>
+        /// Check if <paramref name="code"/> is still available
+        /// </summary>
+        /// <param name="code">Code to be checked</param>
+        /// <returns>True if available, False otherwise</returns>
         public bool CheckCode(string code)
         {
             List<CodeContainer> codeList = Deserialize();
-            if (codeList == null) return false;
+            if (!codeList.Any()) return false;
 
             var codeContainer = codeList.Where(x => x.Code == code);
             if (!codeContainer.Any()) return false;
@@ -128,10 +154,15 @@ namespace OneTimeCodes
             return BlockCode(code);
         }
 
+        /// <summary>
+        /// Blocks <paramref name="code"/>
+        /// </summary>
+        /// <param name="code">Code to be blocked</param>
+        /// <returns>True if success, False otherwise</returns>
         public bool BlockCode(string code)
         {
             List<CodeContainer> codeList = Deserialize();
-            if (codeList == null) return false;
+            if (!codeList.Any()) return false;
 
             var codeContainer = codeList.Select((v, i) => new { v, i }).Where(x => x.v.Code == code);
             if (!codeContainer.Any()) return false;

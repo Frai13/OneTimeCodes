@@ -12,7 +12,6 @@ namespace Tests
     internal class CheckCodeTests
     {
         private TokenGenerator generator;
-        private Exception ex;
 
         [SetUp]
         public void Setup()
