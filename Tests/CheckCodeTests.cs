@@ -12,7 +12,6 @@ namespace Tests
     internal class CheckCodeTests
     {
         private TokenGenerator generator;
-        private Exception ex;
 
         [SetUp]
         public void Setup()
@@ -24,7 +23,7 @@ namespace Tests
         [Test]
         public void TestBlockCodes()
         {
-            generator = new TokenGenerator(0, 6, 3, CodeType.ALL);
+            generator = new TokenGenerator(0, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
 
             Assert.IsFalse(generator.BlockCode("aa"));
@@ -40,7 +39,7 @@ namespace Tests
         [Test]
         public void TestGetStoredCodes()
         {
-            generator = new TokenGenerator(0, 6, 3, CodeType.ALL);
+            generator = new TokenGenerator(0, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
 
             Assert.IsFalse(generator.CheckCode("aa"));
@@ -63,8 +62,7 @@ namespace Tests
                 dir.Delete(true);
             }
 
-            generator = new TokenGenerator(0, 6, 3, CodeType.ALL);
-            Assert.IsFalse(generator.GenerateCodes(0, 3, "example/"));
+            generator = new TokenGenerator(0, 6, CodeType.ALL);
 
             Directory.CreateDirectory("example/");
             Assert.IsTrue(generator.GenerateCodes(0, 3, "example/"));
