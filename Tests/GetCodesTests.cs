@@ -44,6 +44,22 @@ namespace Tests
         }
 
         [Test]
+        public void TestSeed()
+        {
+            generator = new TokenGenerator(0, 6, CodeType.ALL);
+            List<string> codes = generator.GetCodes(0, 3);
+            Assert.That(codes[0] == "emiU4U");
+            Assert.That(codes[1] == "vJ|:<L");
+            Assert.That(codes[2] == "\\M}#r~");
+
+            generator = new TokenGenerator(1, 6, CodeType.ALL);
+            codes = generator.GetCodes(0, 3);
+            Assert.That(codes[0] == "8+Li^I");
+            Assert.That(codes[1] == "By*]#8");
+            Assert.That(codes[2] == "?~a^;Z");
+        }
+
+        [Test]
         public void TestCodeTypes()
         {
             generator = new TokenGenerator(0, 6, CodeType.ALL);

@@ -50,6 +50,17 @@ namespace Tests
             Assert.IsTrue(generator.CheckCode("vJ|:<L"));
             Assert.IsTrue(generator.CheckCode("\\M}#r~"));
             Assert.IsFalse(generator.CheckCode("emiU4U"));
+
+            Assert.IsFalse(generator.CheckCode("8+Li^I"));
+            Assert.IsFalse(generator.CheckCode("By*]#8"));
+            Assert.IsFalse(generator.CheckCode("?~a^;Z"));
+
+            generator = new TokenGenerator(1, 6, CodeType.ALL);
+            generator.GenerateCodes(0, 3);
+            Assert.IsTrue(generator.CheckCode("8+Li^I"));
+            Assert.IsTrue(generator.CheckCode("By*]#8"));
+            Assert.IsTrue(generator.CheckCode("?~a^;Z"));
+            Assert.IsFalse(generator.CheckCode("8+Li^I"));
         }
 
         [Test]
