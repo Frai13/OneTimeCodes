@@ -27,7 +27,7 @@ namespace OneTimeCodes
 
     public class TokenGenerator
     {
-        protected Random Random;
+        protected Rfc2898DeriveBytes RandomGenerator;
         protected uint Length;
         protected CodeType CodeType;
 
@@ -37,15 +37,25 @@ namespace OneTimeCodes
         /// <summary>
         /// TokenGenerator constructor
         /// </summary>
-        /// <param name="seed">Pseudorandom generator</param>
+        /// <param name="password">Password used to generate random values</param>
+        /// <param name="salt">Salt used to generate random values</param>
+        /// <param name="iterations">Iterations used to generate random values</param>
         /// <param name="length">Length of the generated code</param>
         /// <param name="codeType"><see cref="CodeType"/> enum</param>
-        public TokenGenerator(int seed, uint length, CodeType codeType = CodeType.ALL)
+        public TokenGenerator(string password, byte[] salt, int iterations, uint length, CodeType codeType = CodeType.ALL)
         {
-            this.Random = new Random(seed);
+            this.RandomGenerator = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256);
             this.Length = length;
             this.CodeType = codeType;
             this.BytesSaved = new List<byte>();
+        }
+
+        /// <summary>
+        /// TokenGenerator destructor
+        /// </summary>
+        ~TokenGenerator()
+        {
+            this.RandomGenerator.Dispose();
         }
 
         /// <summary>
@@ -66,30 +76,22 @@ namespace OneTimeCodes
                 return GetStoredCodes(start, number);
             }
 
+            string regex = "";
+            if (this.CodeType == CodeType.ALL) regex = @"[!-~]+";
+            else if (this.CodeType == CodeType.ALPHABETIC_ONLY_LOWERCASE) regex = "[a-z]+";
+            else if (this.CodeType == CodeType.ALPHABETIC_ONLY_UPPERCASE) regex = "[A-Z]+";
+            else if (this.CodeType == CodeType.NUMERIC) regex = "[0-9]+";
+            else if (this.CodeType == CodeType.ALPHABETIC_BOTH) regex = "[a-zA-Z]+";
+            else if (this.CodeType == CodeType.ALPHANUMERIC) regex = "[0-9a-zA-Z]+";
+
             for (int i = BytesSaved.Count; i < endFirstByte + Length; i++)
             {
-                if (this.CodeType == CodeType.ALL) BytesSaved.Add((byte)Random.Next('!', 127));
-                else if (this.CodeType == CodeType.ALPHABETIC_ONLY_LOWERCASE) BytesSaved.Add((byte)Random.Next('a', '{'));
-                else if (this.CodeType == CodeType.ALPHABETIC_ONLY_UPPERCASE) BytesSaved.Add((byte)Random.Next('A', '['));
-                else if (this.CodeType == CodeType.NUMERIC) BytesSaved.Add((byte)Random.Next('0', ':'));
-                else if (this.CodeType == CodeType.ALPHABETIC_BOTH)
+                byte value = 0;
+                while (!Regex.IsMatch(((char)value).ToString(), regex))
                 {
-                    byte value = 0;
-                    while (!Regex.IsMatch(((char)value).ToString(), "[a-zA-Z]+"))
-                    {
-                        value = (byte)Random.Next('A', '{');
-                    }
-                    BytesSaved.Add(value);
+                    value = RandomGenerator.GetBytes(1).First();
                 }
-                else if(this.CodeType == CodeType.ALPHANUMERIC)
-                {
-                    byte value = 0;
-                    while (!Regex.IsMatch(((char)value).ToString(), "[0-9a-zA-Z]+"))
-                    {
-                        value = (byte)Random.Next('0', '{');
-                    }
-                    BytesSaved.Add(value);
-                }
+                BytesSaved.Add(value);
             }
 
             return GetStoredCodes(start, number);

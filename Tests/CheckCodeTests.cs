@@ -12,6 +12,7 @@ namespace Tests
     internal class CheckCodeTests
     {
         private TokenGenerator generator;
+        private byte[] saltDefault = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 };
 
         [SetUp]
         public void Setup()
@@ -23,44 +24,44 @@ namespace Tests
         [Test]
         public void TestBlockCodes()
         {
-            generator = new TokenGenerator(0, 6, CodeType.ALL);
+            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
 
             Assert.IsFalse(generator.BlockCode("aa"));
             Assert.IsFalse(generator.BlockCode("aaa"));
             Assert.IsFalse(generator.BlockCode("aaaa"));
 
-            Assert.IsTrue(generator.BlockCode("emiU4U"));
-            Assert.IsTrue(generator.BlockCode("vJ|:<L"));
-            Assert.IsTrue(generator.BlockCode("\\M}#r~"));
-            Assert.IsFalse(generator.BlockCode("emiU4U"));
+            Assert.IsTrue(generator.BlockCode("?N*uv?"));
+            Assert.IsTrue(generator.BlockCode("{1q%vi"));
+            Assert.IsTrue(generator.BlockCode("a5Tqid"));
+            Assert.IsFalse(generator.BlockCode("?N*uv?"));
         }
 
         [Test]
         public void TestGetStoredCodes()
         {
-            generator = new TokenGenerator(0, 6, CodeType.ALL);
+            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
 
             Assert.IsFalse(generator.CheckCode("aa"));
             Assert.IsFalse(generator.CheckCode("aaa"));
             Assert.IsFalse(generator.CheckCode("aaaa"));
 
-            Assert.IsTrue(generator.CheckCode("emiU4U"));
-            Assert.IsTrue(generator.CheckCode("vJ|:<L"));
-            Assert.IsTrue(generator.CheckCode("\\M}#r~"));
-            Assert.IsFalse(generator.CheckCode("emiU4U"));
+            Assert.IsTrue(generator.CheckCode("?N*uv?"));
+            Assert.IsTrue(generator.CheckCode("{1q%vi"));
+            Assert.IsTrue(generator.CheckCode("a5Tqid"));
+            Assert.IsFalse(generator.CheckCode("?N*uv?"));
 
-            Assert.IsFalse(generator.CheckCode("8+Li^I"));
-            Assert.IsFalse(generator.CheckCode("By*]#8"));
-            Assert.IsFalse(generator.CheckCode("?~a^;Z"));
+            Assert.IsFalse(generator.CheckCode("lU]SM1"));
+            Assert.IsFalse(generator.CheckCode("|'!Sqp"));
+            Assert.IsFalse(generator.CheckCode("oxoQ2T"));
 
-            generator = new TokenGenerator(1, 6, CodeType.ALL);
+            generator = new TokenGenerator("test", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
-            Assert.IsTrue(generator.CheckCode("8+Li^I"));
-            Assert.IsTrue(generator.CheckCode("By*]#8"));
-            Assert.IsTrue(generator.CheckCode("?~a^;Z"));
-            Assert.IsFalse(generator.CheckCode("8+Li^I"));
+            Assert.IsTrue(generator.CheckCode("lU]SM1"));
+            Assert.IsTrue(generator.CheckCode("|'!Sqp"));
+            Assert.IsTrue(generator.CheckCode("oxoQ2T"));
+            Assert.IsFalse(generator.CheckCode("lU]SM1"));
         }
 
         [Test]
@@ -73,12 +74,12 @@ namespace Tests
                 dir.Delete(true);
             }
 
-            generator = new TokenGenerator(0, 6, CodeType.ALL);
+            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
 
             Directory.CreateDirectory("example/");
             Assert.IsTrue(generator.GenerateCodes(0, 3, "example/"));
             Assert.IsFalse(generator.CheckCode("aa"));
-            Assert.IsFalse(generator.CheckCode("emiU4U"));
+            Assert.IsFalse(generator.CheckCode("?N*uv?"));
 
             File.Move($"example/{TokenGenerator.fileName}", TokenGenerator.fileName);
 
@@ -86,10 +87,10 @@ namespace Tests
             Assert.IsFalse(generator.CheckCode("aaa"));
             Assert.IsFalse(generator.CheckCode("aaaa"));
 
-            Assert.IsTrue(generator.CheckCode("emiU4U"));
-            Assert.IsTrue(generator.CheckCode("vJ|:<L"));
-            Assert.IsTrue(generator.CheckCode("\\M}#r~"));
-            Assert.IsFalse(generator.CheckCode("emiU4U"));
+            Assert.IsTrue(generator.CheckCode("?N*uv?"));
+            Assert.IsTrue(generator.CheckCode("{1q%vi"));
+            Assert.IsTrue(generator.CheckCode("a5Tqid"));
+            Assert.IsFalse(generator.CheckCode("?N*uv?"));
         }
     }
 }

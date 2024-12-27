@@ -19,7 +19,10 @@ namespace Examples
             uint start = args.Length >= 1 ? UInt32.Parse(args[0]) : 0;
             uint number = args.Length >= 2 ? UInt32.Parse(args[1]) : 3;
 
-            TokenGenerator generator = new TokenGenerator(0, 3);
+            string password = "";
+            byte[] salt = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 };
+            int iterations = 10000;
+            TokenGenerator generator = new TokenGenerator(password, salt, iterations, 3);
             
             List<string> code_list = generator.GetCodes(start, number);
             generator.GenerateCodes(start, number);
