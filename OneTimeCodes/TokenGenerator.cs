@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -34,20 +35,34 @@ namespace OneTimeCodes
         internal List<byte> BytesSaved;
         internal static string fileName = "codes";
 
+        private byte[] Salt;
+        private byte[] EncryptionKey;
+        private const int EncryptionKeyLength = 32;
+        private byte[] EncryptionIv;
+        private const int EncryptionIvLength = 16;
+
         /// <summary>
         /// TokenGenerator constructor
         /// </summary>
         /// <param name="password">Password used to generate random values</param>
-        /// <param name="salt">Salt used to generate random values</param>
+        /// <param name="salt">Salt used to generate random values. Length must be 16.</param>
         /// <param name="iterations">Iterations used to generate random values</param>
         /// <param name="length">Length of the generated code</param>
         /// <param name="codeType"><see cref="CodeType"/> enum</param>
+        /// <exception cref="ArgumentException">Thrown if salt length is not 16 and by Rfc2898DeriveBytes</exception>
+        /// <exception cref="CryptographicException">Thrown by Rfc2898DeriveBytes</exception>
         public TokenGenerator(string password, byte[] salt, int iterations, uint length, CodeType codeType = CodeType.ALL)
         {
+            if (salt.Length != 16) throw new ArgumentException("Salt length must be 16");
+
+            this.Salt = salt;
             this.RandomGenerator = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256);
             this.Length = length;
             this.CodeType = codeType;
             this.BytesSaved = new List<byte>();
+
+            this.EncryptionKey = RandomGenerator.GetBytes(EncryptionKeyLength);
+            this.EncryptionIv = RandomGenerator.GetBytes(EncryptionIvLength);
         }
 
         /// <summary>
@@ -177,18 +192,19 @@ namespace OneTimeCodes
         }
         
 
-        internal virtual void Serialize(List<CodeContainer> codeList, string path)
+        internal void Serialize(List<CodeContainer> codeList, string path)
         {
             string jsonString = JsonConvert.SerializeObject(codeList);
 
             File.WriteAllText($"{path}{fileName}", jsonString);
+            Encryptor.Encrypt(EncryptionKey, EncryptionIv, Salt, $"{path}{fileName}");
         }
 
         internal List<CodeContainer> Deserialize()
         {
             List<CodeContainer> codeList = new List<CodeContainer>();
             if (!File.Exists(fileName)) return codeList;
-            string jsonString = File.ReadAllText(fileName);
+            string jsonString = Encryptor.Decrypt(EncryptionKey, EncryptionIv, fileName); ;
             codeList = JsonConvert.DeserializeObject<List<CodeContainer>>(jsonString);
             return codeList;
         }

@@ -12,7 +12,7 @@ namespace Tests
     public class GetCodesTests
     {
         private TokenGenerator generator;
-        private byte[] saltDefault = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 };
+        private byte[] saltDefault = Enumerable.Range(0, 16).Select(x => (byte)x).ToArray();
 
         [SetUp]
         public void Setup()
@@ -49,36 +49,36 @@ namespace Tests
         {
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             List<string> codes = generator.GetCodes(0, 3);
-            Assert.That(codes[0] == "?N*uv?");
-            Assert.That(codes[1] == "{1q%vi");
-            Assert.That(codes[2] == "a5Tqid");
+            Assert.That(codes[0] == "9?:O)R");
+            Assert.That(codes[1] == ";oy@+w");
+            Assert.That(codes[2] == ",RXD~=");
             generator = new TokenGenerator("", saltDefault, 100, 6, CodeType.ALL);
             codes = generator.GetCodes(0, 3);
-            Assert.That(codes[0] == "GKd9;~");
-            Assert.That(codes[1] == "\"d*kNn");
-            Assert.That(codes[2] == "igdpo_");
+            Assert.That(codes[0] == "v1AB$&");
+            Assert.That(codes[1] == "(.#Cb4");
+            Assert.That(codes[2] == "r\\@n`Q");
 
             generator = new TokenGenerator("test", saltDefault, 1000, 6, CodeType.ALL);
             codes = generator.GetCodes(0, 3);
-            Assert.That(codes[0] == "lU]SM1");
-            Assert.That(codes[1] == "|'!Sqp");
-            Assert.That(codes[2] == "oxoQ2T");
+            Assert.That(codes[0] == "S#exOP");
+            Assert.That(codes[1] == "FML[Co");
+            Assert.That(codes[2] == "]aR{>H");
             generator = new TokenGenerator("test", saltDefault, 100, 6, CodeType.ALL);
             codes = generator.GetCodes(0, 3);
-            Assert.That(codes[0] == "In%v(B");
-            Assert.That(codes[1] == "D{<{<=");
-            Assert.That(codes[2] == "*cOWW_");
+            Assert.That(codes[0] == "K>Aw<V");
+            Assert.That(codes[1] == "q0cd;s");
+            Assert.That(codes[2] == "jN7+wc");
 
-            generator = new TokenGenerator("", new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, 1000, 6, CodeType.ALL);
+            generator = new TokenGenerator("", Enumerable.Range(1, 16).Select(x => (byte)x).ToArray(), 1000, 6, CodeType.ALL);
             codes = generator.GetCodes(0, 3);
-            Assert.That(codes[0] == "A,*Uwu");
-            Assert.That(codes[1] == "/pk+Zt");
-            Assert.That(codes[2] == "5^o7]c");
-            generator = new TokenGenerator("", new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, 100, 6, CodeType.ALL);
+            Assert.That(codes[0] == "7j\\Wlw");
+            Assert.That(codes[1] == "P-oq?*");
+            Assert.That(codes[2] == "o9&B+P");
+            generator = new TokenGenerator("", Enumerable.Range(1, 16).Select(x => (byte)x).ToArray(), 100, 6, CodeType.ALL);
             codes = generator.GetCodes(0, 3);
-            Assert.That(codes[0] == "/Bp+*k");
-            Assert.That(codes[1] == ".-EL)a");
-            Assert.That(codes[2] == "C.r6>Y");
+            Assert.That(codes[0] == "tg7O>)");
+            Assert.That(codes[1] == "%maa=Y");
+            Assert.That(codes[2] == "K+F@T3");
         }
 
         [Test]
@@ -86,34 +86,34 @@ namespace Tests
         {
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             List<string> codes = generator.GetCodes(0, 3);
-            Assert.That(codes[0] == "?N*uv?");
-            Assert.That(codes[1] == "{1q%vi");
-            Assert.That(codes[2] == "a5Tqid");
+            Assert.That(codes[0] == "9?:O)R");
+            Assert.That(codes[1] == ";oy@+w");
+            Assert.That(codes[2] == ",RXD~=");
 
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALPHABETIC_ONLY_LOWERCASE);
             codes = generator.GetCodes(0, 2);
-            Assert.That(codes[0] == "uvqvia");
-            Assert.That(codes[1] == "qidqcq");
+            Assert.That(codes[0] == "oywcal");
+            Assert.That(codes[1] == "ahukdr");
 
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALPHABETIC_ONLY_UPPERCASE);
             codes = generator.GetCodes(0, 2);
-            Assert.That(codes[0] == "NTSBIK");
-            Assert.That(codes[1] == "WWDEHA");
+            Assert.That(codes[0] == "ORRXDI");
+            Assert.That(codes[1] == "CRFBJZ");
 
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALPHABETIC_BOTH);
             codes = generator.GetCodes(0, 2);
-            Assert.That(codes[0] == "Nuvqvi");
-            Assert.That(codes[1] == "aTqidS");
+            Assert.That(codes[0] == "ORoywR");
+            Assert.That(codes[1] == "XDcaIl");
 
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.NUMERIC);
             codes = generator.GetCodes(0, 2);
-            Assert.That(codes[0] == "151108");
-            Assert.That(codes[1] == "058796");
+            Assert.That(codes[0] == "991583");
+            Assert.That(codes[1] == "589604");
 
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALPHANUMERIC);
             codes = generator.GetCodes(0, 2);
-            Assert.That(codes[0] == "Nuv1qv");
-            Assert.That(codes[1] == "ia5Tqi");
+            Assert.That(codes[0] == "9ORoyw");
+            Assert.That(codes[1] == "RXDcaI");
         }
 
         [Test]
