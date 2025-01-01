@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
+using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -27,25 +29,50 @@ namespace OneTimeCodes
 
     public class TokenGenerator
     {
-        protected Random Random;
+        protected Rfc2898DeriveBytes RandomGenerator;
         protected uint Length;
         protected CodeType CodeType;
 
         internal List<byte> BytesSaved;
-        internal static string fileName = "codes";
+        internal static string CodesFileName = "codes";
+        internal static string HashFileName = "hash";
+
+        private byte[] Salt;
+        private byte[] EncryptionKey;
+        private const int EncryptionKeyLength = 32;
+        private byte[] EncryptionIv;
+        private const int EncryptionIvLength = 16;
 
         /// <summary>
         /// TokenGenerator constructor
         /// </summary>
-        /// <param name="seed">Pseudorandom generator</param>
+        /// <param name="password">Password used to generate random values</param>
+        /// <param name="salt">Salt used to generate random values. Length must be 16.</param>
+        /// <param name="iterations">Iterations used to generate random values</param>
         /// <param name="length">Length of the generated code</param>
         /// <param name="codeType"><see cref="CodeType"/> enum</param>
-        public TokenGenerator(int seed, uint length, CodeType codeType = CodeType.ALL)
+        /// <exception cref="System.ArgumentException">Thrown if salt length is not 16 and by Rfc2898DeriveBytes</exception>
+        /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown by Rfc2898DeriveBytes</exception>
+        public TokenGenerator(string password, byte[] salt, int iterations, uint length, CodeType codeType = CodeType.ALL)
         {
-            this.Random = new Random(seed);
+            if (salt.Length != 16) throw new System.ArgumentException("Salt length must be 16");
+
+            this.Salt = salt;
+            this.RandomGenerator = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256);
             this.Length = length;
             this.CodeType = codeType;
             this.BytesSaved = new List<byte>();
+
+            this.EncryptionKey = RandomGenerator.GetBytes(EncryptionKeyLength);
+            this.EncryptionIv = RandomGenerator.GetBytes(EncryptionIvLength);
+        }
+
+        /// <summary>
+        /// TokenGenerator destructor
+        /// </summary>
+        ~TokenGenerator()
+        {
+            this.RandomGenerator.Dispose();
         }
 
         /// <summary>
@@ -66,30 +93,22 @@ namespace OneTimeCodes
                 return GetStoredCodes(start, number);
             }
 
+            string regex = "";
+            if (this.CodeType == CodeType.ALL) regex = @"[!-~]+";
+            else if (this.CodeType == CodeType.ALPHABETIC_ONLY_LOWERCASE) regex = "[a-z]+";
+            else if (this.CodeType == CodeType.ALPHABETIC_ONLY_UPPERCASE) regex = "[A-Z]+";
+            else if (this.CodeType == CodeType.NUMERIC) regex = "[0-9]+";
+            else if (this.CodeType == CodeType.ALPHABETIC_BOTH) regex = "[a-zA-Z]+";
+            else if (this.CodeType == CodeType.ALPHANUMERIC) regex = "[0-9a-zA-Z]+";
+
             for (int i = BytesSaved.Count; i < endFirstByte + Length; i++)
             {
-                if (this.CodeType == CodeType.ALL) BytesSaved.Add((byte)Random.Next('!', 127));
-                else if (this.CodeType == CodeType.ALPHABETIC_ONLY_LOWERCASE) BytesSaved.Add((byte)Random.Next('a', '{'));
-                else if (this.CodeType == CodeType.ALPHABETIC_ONLY_UPPERCASE) BytesSaved.Add((byte)Random.Next('A', '['));
-                else if (this.CodeType == CodeType.NUMERIC) BytesSaved.Add((byte)Random.Next('0', ':'));
-                else if (this.CodeType == CodeType.ALPHABETIC_BOTH)
+                byte value = 0;
+                while (!Regex.IsMatch(((char)value).ToString(), regex))
                 {
-                    byte value = 0;
-                    while (!Regex.IsMatch(((char)value).ToString(), "[a-zA-Z]+"))
-                    {
-                        value = (byte)Random.Next('A', '{');
-                    }
-                    BytesSaved.Add(value);
+                    value = RandomGenerator.GetBytes(1).First();
                 }
-                else if(this.CodeType == CodeType.ALPHANUMERIC)
-                {
-                    byte value = 0;
-                    while (!Regex.IsMatch(((char)value).ToString(), "[0-9a-zA-Z]+"))
-                    {
-                        value = (byte)Random.Next('0', '{');
-                    }
-                    BytesSaved.Add(value);
-                }
+                BytesSaved.Add(value);
             }
 
             return GetStoredCodes(start, number);
@@ -115,6 +134,8 @@ namespace OneTimeCodes
         /// <param name="start">Start index</param>
         /// <param name="number">Number of codes to generate</param>
         /// <returns>True if success</returns>
+        /// <exception cref="System.IO.IOException">Thrown if file is in use</exception>
+        /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
         public bool GenerateCodes(uint start, uint number, string path = "")
         {
             path = path == "" ? "./" : path;
@@ -131,9 +152,7 @@ namespace OneTimeCodes
                 codeList.Add(new CodeContainer((uint)i + start, codes.ElementAt(i)));
             }
 
-            Serialize(codeList, path);
-            
-            return true;
+            return Serialize(codeList, path);
         }
 
         /// <summary>
@@ -141,6 +160,8 @@ namespace OneTimeCodes
         /// </summary>
         /// <param name="code">Code to be checked</param>
         /// <returns>True if available, False otherwise</returns>
+        /// <exception cref="System.IO.IOException">Thrown if file is in use</exception>
+        /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
         public bool CheckCode(string code)
         {
             List<CodeContainer> codeList = Deserialize();
@@ -159,8 +180,15 @@ namespace OneTimeCodes
         /// </summary>
         /// <param name="code">Code to be blocked</param>
         /// <returns>True if success, False otherwise</returns>
+        /// <exception cref="System.IO.IOException">Thrown if file is in use</exception>
+        /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
         public bool BlockCode(string code)
         {
+            string hash = GetHash(CodesFileName);
+            if (hash == "") return false;
+            string content = Encryptor.Decrypt(EncryptionKey, EncryptionIv, HashFileName);
+            if (hash != content) return false;
+
             List<CodeContainer> codeList = Deserialize();
             if (!codeList.Any()) return false;
 
@@ -169,26 +197,40 @@ namespace OneTimeCodes
 
             codeList.RemoveAt(codeContainer.First().i);
 
-            Serialize(codeList, "");
-
-            return true;
+            return Serialize(codeList, "");
         }
         
 
-        internal virtual void Serialize(List<CodeContainer> codeList, string path)
+        internal bool Serialize(List<CodeContainer> codeList, string path)
         {
             string jsonString = JsonConvert.SerializeObject(codeList);
 
-            File.WriteAllText($"{path}{fileName}", jsonString);
+            File.WriteAllText($"{path}{CodesFileName}", jsonString);
+            Encryptor.Encrypt(EncryptionKey, EncryptionIv, Salt, $"{path}{CodesFileName}");
+
+            string hash = GetHash($"{path}{CodesFileName}");
+            File.WriteAllText($"{path}{HashFileName}", hash);
+            return Encryptor.Encrypt(EncryptionKey, EncryptionIv, Salt, $"{path}{HashFileName}");
         }
 
         internal List<CodeContainer> Deserialize()
         {
             List<CodeContainer> codeList = new List<CodeContainer>();
-            if (!File.Exists(fileName)) return codeList;
-            string jsonString = File.ReadAllText(fileName);
+            if (!File.Exists(CodesFileName)) return codeList;
+            string jsonString = Encryptor.Decrypt(EncryptionKey, EncryptionIv, CodesFileName); ;
             codeList = JsonConvert.DeserializeObject<List<CodeContainer>>(jsonString);
             return codeList;
+        }
+
+        private string GetHash(string fileName)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                using (FileStream fs = File.OpenRead(fileName))
+                {
+                    return string.Concat(sha256.ComputeHash(fs).Select(x => x.ToString("x2")));
+                }
+            }
         }
     }
 }

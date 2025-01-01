@@ -400,3 +400,5 @@ FodyWeavers.xsd
 *.sln.iml
 
 example/**
+examplefile
+hash

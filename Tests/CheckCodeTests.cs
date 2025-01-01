@@ -12,55 +12,57 @@ namespace Tests
     internal class CheckCodeTests
     {
         private TokenGenerator generator;
+        private byte[] saltDefault = Enumerable.Range(0, 16).Select(x => (byte)x).ToArray();
 
         [SetUp]
         public void Setup()
         {
             generator = null;
-            File.Delete(TokenGenerator.fileName);
+            File.Delete(TokenGenerator.CodesFileName);
+            File.Delete(TokenGenerator.HashFileName);
         }
 
         [Test]
         public void TestBlockCodes()
         {
-            generator = new TokenGenerator(0, 6, CodeType.ALL);
+            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
 
             Assert.IsFalse(generator.BlockCode("aa"));
             Assert.IsFalse(generator.BlockCode("aaa"));
             Assert.IsFalse(generator.BlockCode("aaaa"));
 
-            Assert.IsTrue(generator.BlockCode("emiU4U"));
-            Assert.IsTrue(generator.BlockCode("vJ|:<L"));
-            Assert.IsTrue(generator.BlockCode("\\M}#r~"));
-            Assert.IsFalse(generator.BlockCode("emiU4U"));
+            Assert.IsTrue(generator.BlockCode("9?:O)R"));
+            Assert.IsTrue(generator.BlockCode(";oy@+w"));
+            Assert.IsTrue(generator.BlockCode(",RXD~="));
+            Assert.IsFalse(generator.BlockCode("9?:O)R"));
         }
 
         [Test]
         public void TestGetStoredCodes()
         {
-            generator = new TokenGenerator(0, 6, CodeType.ALL);
+            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
 
             Assert.IsFalse(generator.CheckCode("aa"));
             Assert.IsFalse(generator.CheckCode("aaa"));
             Assert.IsFalse(generator.CheckCode("aaaa"));
 
-            Assert.IsTrue(generator.CheckCode("emiU4U"));
-            Assert.IsTrue(generator.CheckCode("vJ|:<L"));
-            Assert.IsTrue(generator.CheckCode("\\M}#r~"));
-            Assert.IsFalse(generator.CheckCode("emiU4U"));
+            Assert.IsTrue(generator.CheckCode("9?:O)R"));
+            Assert.IsTrue(generator.CheckCode(";oy@+w"));
+            Assert.IsTrue(generator.CheckCode(",RXD~="));
+            Assert.IsFalse(generator.CheckCode("9?:O)R"));
 
-            Assert.IsFalse(generator.CheckCode("8+Li^I"));
-            Assert.IsFalse(generator.CheckCode("By*]#8"));
-            Assert.IsFalse(generator.CheckCode("?~a^;Z"));
+            Assert.IsFalse(generator.CheckCode("S#exOP"));
+            Assert.IsFalse(generator.CheckCode("FML[Co"));
+            Assert.IsFalse(generator.CheckCode("]aR{>H"));
 
-            generator = new TokenGenerator(1, 6, CodeType.ALL);
+            generator = new TokenGenerator("test", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
-            Assert.IsTrue(generator.CheckCode("8+Li^I"));
-            Assert.IsTrue(generator.CheckCode("By*]#8"));
-            Assert.IsTrue(generator.CheckCode("?~a^;Z"));
-            Assert.IsFalse(generator.CheckCode("8+Li^I"));
+            Assert.IsTrue(generator.CheckCode("S#exOP"));
+            Assert.IsTrue(generator.CheckCode("FML[Co"));
+            Assert.IsTrue(generator.CheckCode("]aR{>H"));
+            Assert.IsFalse(generator.CheckCode("S#exOP"));
         }
 
         [Test]
@@ -73,23 +75,24 @@ namespace Tests
                 dir.Delete(true);
             }
 
-            generator = new TokenGenerator(0, 6, CodeType.ALL);
+            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
 
             Directory.CreateDirectory("example/");
             Assert.IsTrue(generator.GenerateCodes(0, 3, "example/"));
             Assert.IsFalse(generator.CheckCode("aa"));
-            Assert.IsFalse(generator.CheckCode("emiU4U"));
+            Assert.IsFalse(generator.CheckCode("9?:O)R"));
 
-            File.Move($"example/{TokenGenerator.fileName}", TokenGenerator.fileName);
+            File.Move($"example/{TokenGenerator.CodesFileName}", TokenGenerator.CodesFileName);
+            File.Move($"example/{TokenGenerator.HashFileName}", TokenGenerator.HashFileName);
 
             Assert.IsFalse(generator.CheckCode("aa"));
             Assert.IsFalse(generator.CheckCode("aaa"));
             Assert.IsFalse(generator.CheckCode("aaaa"));
 
-            Assert.IsTrue(generator.CheckCode("emiU4U"));
-            Assert.IsTrue(generator.CheckCode("vJ|:<L"));
-            Assert.IsTrue(generator.CheckCode("\\M}#r~"));
-            Assert.IsFalse(generator.CheckCode("emiU4U"));
+            Assert.IsTrue(generator.CheckCode("9?:O)R"));
+            Assert.IsTrue(generator.CheckCode(";oy@+w"));
+            Assert.IsTrue(generator.CheckCode(",RXD~="));
+            Assert.IsFalse(generator.CheckCode("9?:O)R"));
         }
     }
 }
