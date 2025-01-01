@@ -49,11 +49,11 @@ namespace OneTimeCodes
         /// <param name="iterations">Iterations used to generate random values</param>
         /// <param name="length">Length of the generated code</param>
         /// <param name="codeType"><see cref="CodeType"/> enum</param>
-        /// <exception cref="ArgumentException">Thrown if salt length is not 16 and by Rfc2898DeriveBytes</exception>
-        /// <exception cref="CryptographicException">Thrown by Rfc2898DeriveBytes</exception>
+        /// <exception cref="System.ArgumentException">Thrown if salt length is not 16 and by Rfc2898DeriveBytes</exception>
+        /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown by Rfc2898DeriveBytes</exception>
         public TokenGenerator(string password, byte[] salt, int iterations, uint length, CodeType codeType = CodeType.ALL)
         {
-            if (salt.Length != 16) throw new ArgumentException("Salt length must be 16");
+            if (salt.Length != 16) throw new System.ArgumentException("Salt length must be 16");
 
             this.Salt = salt;
             this.RandomGenerator = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256);
@@ -132,6 +132,8 @@ namespace OneTimeCodes
         /// <param name="start">Start index</param>
         /// <param name="number">Number of codes to generate</param>
         /// <returns>True if success</returns>
+        /// <exception cref="System.IO.IOException">Thrown if file is in use</exception>
+        /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
         public bool GenerateCodes(uint start, uint number, string path = "")
         {
             path = path == "" ? "./" : path;
@@ -158,6 +160,8 @@ namespace OneTimeCodes
         /// </summary>
         /// <param name="code">Code to be checked</param>
         /// <returns>True if available, False otherwise</returns>
+        /// <exception cref="System.IO.IOException">Thrown if file is in use</exception>
+        /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
         public bool CheckCode(string code)
         {
             List<CodeContainer> codeList = Deserialize();
@@ -176,6 +180,8 @@ namespace OneTimeCodes
         /// </summary>
         /// <param name="code">Code to be blocked</param>
         /// <returns>True if success, False otherwise</returns>
+        /// <exception cref="System.IO.IOException">Thrown if file is in use</exception>
+        /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
         public bool BlockCode(string code)
         {
             List<CodeContainer> codeList = Deserialize();
