@@ -64,6 +64,7 @@ namespace Tests
 
             string content = Encryptor.Decrypt(key, iv, defaultFileName);
             Assert.IsTrue(content == defaultContent);
+            File.Delete($"{defaultFileName}_tmp");
         }
 
         [Test]

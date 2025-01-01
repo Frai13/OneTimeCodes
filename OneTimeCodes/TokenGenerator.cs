@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
+using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -33,7 +34,8 @@ namespace OneTimeCodes
         protected CodeType CodeType;
 
         internal List<byte> BytesSaved;
-        internal static string fileName = "codes";
+        internal static string CodesFileName = "codes";
+        internal static string HashFileName = "hash";
 
         private byte[] Salt;
         private byte[] EncryptionKey;
@@ -150,9 +152,7 @@ namespace OneTimeCodes
                 codeList.Add(new CodeContainer((uint)i + start, codes.ElementAt(i)));
             }
 
-            Serialize(codeList, path);
-            
-            return true;
+            return Serialize(codeList, path);
         }
 
         /// <summary>
@@ -184,6 +184,11 @@ namespace OneTimeCodes
         /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
         public bool BlockCode(string code)
         {
+            string hash = GetHash(CodesFileName);
+            if (hash == "") return false;
+            string content = Encryptor.Decrypt(EncryptionKey, EncryptionIv, HashFileName);
+            if (hash != content) return false;
+
             List<CodeContainer> codeList = Deserialize();
             if (!codeList.Any()) return false;
 
@@ -192,27 +197,40 @@ namespace OneTimeCodes
 
             codeList.RemoveAt(codeContainer.First().i);
 
-            Serialize(codeList, "");
-
-            return true;
+            return Serialize(codeList, "");
         }
         
 
-        internal void Serialize(List<CodeContainer> codeList, string path)
+        internal bool Serialize(List<CodeContainer> codeList, string path)
         {
             string jsonString = JsonConvert.SerializeObject(codeList);
 
-            File.WriteAllText($"{path}{fileName}", jsonString);
-            Encryptor.Encrypt(EncryptionKey, EncryptionIv, Salt, $"{path}{fileName}");
+            File.WriteAllText($"{path}{CodesFileName}", jsonString);
+            Encryptor.Encrypt(EncryptionKey, EncryptionIv, Salt, $"{path}{CodesFileName}");
+
+            string hash = GetHash($"{path}{CodesFileName}");
+            File.WriteAllText($"{path}{HashFileName}", hash);
+            return Encryptor.Encrypt(EncryptionKey, EncryptionIv, Salt, $"{path}{HashFileName}");
         }
 
         internal List<CodeContainer> Deserialize()
         {
             List<CodeContainer> codeList = new List<CodeContainer>();
-            if (!File.Exists(fileName)) return codeList;
-            string jsonString = Encryptor.Decrypt(EncryptionKey, EncryptionIv, fileName); ;
+            if (!File.Exists(CodesFileName)) return codeList;
+            string jsonString = Encryptor.Decrypt(EncryptionKey, EncryptionIv, CodesFileName); ;
             codeList = JsonConvert.DeserializeObject<List<CodeContainer>>(jsonString);
             return codeList;
+        }
+
+        private string GetHash(string fileName)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                using (FileStream fs = File.OpenRead(fileName))
+                {
+                    return string.Concat(sha256.ComputeHash(fs).Select(x => x.ToString("x2")));
+                }
+            }
         }
     }
 }

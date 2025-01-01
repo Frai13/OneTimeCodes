@@ -15,7 +15,8 @@ namespace OneTimeCodes
             if (!File.Exists(filePath)) return false;
 
             string inputPath = filePath;
-            string outputPath = $"{filePath}_tmp";
+            string dateStr = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+            string outputPath = $"{filePath}_{dateStr}";
 
             try
             {
