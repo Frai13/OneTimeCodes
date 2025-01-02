@@ -19,7 +19,6 @@ namespace Tests
         {
             generator = null;
             File.Delete(TokenGenerator.CodesFileName);
-            File.Delete(TokenGenerator.HashFileName);
         }
 
         [Test]

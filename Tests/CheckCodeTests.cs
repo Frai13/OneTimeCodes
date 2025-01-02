@@ -19,7 +19,6 @@ namespace Tests
         {
             generator = null;
             File.Delete(TokenGenerator.CodesFileName);
-            File.Delete(TokenGenerator.HashFileName);
         }
 
         [Test]
@@ -83,7 +82,6 @@ namespace Tests
             Assert.IsFalse(generator.CheckCode("9?:O)R"));
 
             File.Move($"example/{TokenGenerator.CodesFileName}", TokenGenerator.CodesFileName);
-            File.Move($"example/{TokenGenerator.HashFileName}", TokenGenerator.HashFileName);
 
             Assert.IsFalse(generator.CheckCode("aa"));
             Assert.IsFalse(generator.CheckCode("aaa"));

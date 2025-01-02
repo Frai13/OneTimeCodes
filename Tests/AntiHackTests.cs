@@ -19,7 +19,6 @@ namespace Tests
         {
             generator = null;
             File.Delete(TokenGenerator.CodesFileName);
-            File.Delete(TokenGenerator.HashFileName);
         }
 
         [Test]
@@ -30,13 +29,6 @@ namespace Tests
 
             Assert.IsTrue(generator.CheckCode("9?:O)R"));
             File.Delete(TokenGenerator.CodesFileName);
-            Assert.IsFalse(generator.CheckCode(";oy@+w"));
-            Assert.IsFalse(generator.CheckCode(",RXD~="));
-
-            generator.GenerateCodes(0, 3);
-
-            Assert.IsTrue(generator.CheckCode("9?:O)R"));
-            File.Delete(TokenGenerator.HashFileName);
             Assert.IsFalse(generator.CheckCode(";oy@+w"));
             Assert.IsFalse(generator.CheckCode(",RXD~="));
         }
@@ -55,17 +47,7 @@ namespace Tests
         }
 
         [Test]
-        public void TestFileHashDelete()
-        {
-            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
-            generator.GenerateCodes(0, 3);
-
-            File.Delete(TokenGenerator.CodesFileName);
-            Assert.IsFalse(generator.CheckCode("9?:O)R"));
-        }
-
-        [Test]
-        public void TestFileHashDifferentPass()
+        public void TestFileDifferentPass()
         {
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);

@@ -35,7 +35,6 @@ namespace OneTimeCodes
 
         internal List<byte> BytesSaved;
         internal static string CodesFileName = "codes";
-        internal static string HashFileName = "hash";
 
         private byte[] Salt;
         private byte[] EncryptionKey;
@@ -184,11 +183,6 @@ namespace OneTimeCodes
         /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
         public bool BlockCode(string code)
         {
-            string hash = GetHash(CodesFileName);
-            if (hash == "") return false;
-            string content = Encryptor.Decrypt(EncryptionKey, EncryptionIv, HashFileName);
-            if (hash != content) return false;
-
             List<CodeContainer> codeList = Deserialize();
             if (!codeList.Any()) return false;
 
@@ -208,9 +202,7 @@ namespace OneTimeCodes
             File.WriteAllText($"{path}{CodesFileName}", jsonString);
             Encryptor.Encrypt(EncryptionKey, EncryptionIv, Salt, $"{path}{CodesFileName}");
 
-            string hash = GetHash($"{path}{CodesFileName}");
-            File.WriteAllText($"{path}{HashFileName}", hash);
-            return Encryptor.Encrypt(EncryptionKey, EncryptionIv, Salt, $"{path}{HashFileName}");
+            return true;
         }
 
         internal List<CodeContainer> Deserialize()
@@ -220,17 +212,6 @@ namespace OneTimeCodes
             string jsonString = Encryptor.Decrypt(EncryptionKey, EncryptionIv, CodesFileName); ;
             codeList = JsonConvert.DeserializeObject<List<CodeContainer>>(jsonString);
             return codeList;
-        }
-
-        private string GetHash(string fileName)
-        {
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                using (FileStream fs = File.OpenRead(fileName))
-                {
-                    return string.Concat(sha256.ComputeHash(fs).Select(x => x.ToString("x2")));
-                }
-            }
         }
     }
 }
