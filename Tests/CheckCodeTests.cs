@@ -26,6 +26,7 @@ namespace Tests
         {
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
+            File.Move(TokenGenerator.UserCodesFileName, TokenGenerator.CodesFileName);
 
             Assert.IsFalse(generator.BlockCode("aa"));
             Assert.IsFalse(generator.BlockCode("aaa"));
@@ -42,6 +43,7 @@ namespace Tests
         {
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
+            File.Move(TokenGenerator.UserCodesFileName, TokenGenerator.CodesFileName);
 
             Assert.IsFalse(generator.CheckCode("aa"));
             Assert.IsFalse(generator.CheckCode("aaa"));
@@ -58,6 +60,8 @@ namespace Tests
 
             generator = new TokenGenerator("test", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
+            File.Delete(TokenGenerator.CodesFileName);
+            File.Move(TokenGenerator.UserCodesFileName, TokenGenerator.CodesFileName);
             Assert.IsTrue(generator.CheckCode("S#exOP"));
             Assert.IsTrue(generator.CheckCode("FML[Co"));
             Assert.IsTrue(generator.CheckCode("]aR{>H"));
@@ -77,11 +81,11 @@ namespace Tests
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
 
             Directory.CreateDirectory("example/");
-            Assert.IsTrue(generator.GenerateCodes(0, 3, "example/"));
+            Assert.IsTrue(generator.GenerateCodes(0, 3, "example/codes"));
             Assert.IsFalse(generator.CheckCode("aa"));
             Assert.IsFalse(generator.CheckCode("9?:O)R"));
 
-            File.Move($"example/{TokenGenerator.CodesFileName}", TokenGenerator.CodesFileName);
+            File.Move($"example/codes", TokenGenerator.CodesFileName);
 
             Assert.IsFalse(generator.CheckCode("aa"));
             Assert.IsFalse(generator.CheckCode("aaa"));

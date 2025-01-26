@@ -19,6 +19,7 @@ namespace Tests
         {
             generator = null;
             File.Delete(TokenGenerator.CodesFileName);
+            File.Delete($"{TokenGenerator.CodesFileName}_tmp");
         }
 
         [Test]
@@ -26,6 +27,7 @@ namespace Tests
         {
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
+            File.Move(TokenGenerator.UserCodesFileName, TokenGenerator.CodesFileName);
 
             Assert.IsTrue(generator.CheckCode("9?:O)R"));
             File.Delete(TokenGenerator.CodesFileName);
@@ -38,6 +40,7 @@ namespace Tests
         {
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
+            File.Move(TokenGenerator.UserCodesFileName, TokenGenerator.CodesFileName);
 
             string content = File.ReadAllText(TokenGenerator.CodesFileName);
             Assert.IsFalse(content.Contains("9?:O)R"));
@@ -51,11 +54,11 @@ namespace Tests
         {
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
-            File.Copy(TokenGenerator.CodesFileName, $"{TokenGenerator.CodesFileName}_tmp");
+            File.Copy(TokenGenerator.UserCodesFileName, $"{TokenGenerator.CodesFileName}_tmp");
 
             generator = new TokenGenerator("test", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
-            File.Delete(TokenGenerator.CodesFileName);
+            File.Delete(TokenGenerator.UserCodesFileName);
             File.Move($"{TokenGenerator.CodesFileName}_tmp", TokenGenerator.CodesFileName);
             Assert.Throws<System.Security.Cryptography.CryptographicException>(() => { generator.CheckCode("S#exOP"); });
         }
@@ -66,7 +69,7 @@ namespace Tests
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
 
-            File.Copy(TokenGenerator.CodesFileName, $"{TokenGenerator.CodesFileName}_tmp");
+            File.Copy(TokenGenerator.UserCodesFileName, $"{TokenGenerator.CodesFileName}_tmp");
             Assert.IsTrue(generator.CheckCode("9?:O)R"));
             File.Delete(TokenGenerator.CodesFileName);
             File.Move($"{TokenGenerator.CodesFileName}_tmp", TokenGenerator.CodesFileName);

@@ -18,4 +18,19 @@ namespace OneTimeCodes
             Code = code;
         }
     }
+
+    internal class CodeContainerEquality : IEqualityComparer<CodeContainer>
+    {
+        public CodeContainerEquality() { }
+
+        public bool Equals(CodeContainer x, CodeContainer y)
+        {
+            return x.Code == y.Code;
+        }
+
+        public int GetHashCode(CodeContainer obj)
+        {
+            return obj.Code.GetHashCode();
+        }
+    }
 }
