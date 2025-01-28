@@ -20,28 +20,49 @@ namespace Examples
             uint number = args.Length >= 2 ? UInt32.Parse(args[1]) : 3;
 
             string password = "";
-            byte[] salt = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 };
+            byte[] salt = Enumerable.Range(0, 16).Select(x => (byte)x).ToArray();
             int iterations = 10000;
-            TokenGenerator generator = new TokenGenerator(password, salt, iterations, 3);
-            
-            List<string> code_list = generator.GetCodes(start, number);
-            generator.GenerateCodes(start, number);
-            Console.WriteLine("Codes list:");
-            foreach (var c in code_list) Console.WriteLine($"\t[{c}]");
 
-            Console.WriteLine("Introduce codes to verify.");
-            Console.WriteLine("Press CTRL+C to exit.");
-            while (true)
+            try
             {
-                string code = Console.ReadLine();
-                if (generator.CheckCode(code))
+                TokenGenerator generator = new TokenGenerator(password, salt, iterations, 3);
+
+                List<string> code_list = generator.GetCodes(start, number);
+                generator.GenerateCodes(start, number);
+                generator.AddCodes("codes");
+                Console.WriteLine("Codes list:");
+                foreach (var c in code_list) Console.WriteLine($"\t[{c}]");
+
+                Console.WriteLine("Introduce codes to verify.");
+                Console.WriteLine("Press CTRL+C to exit.");
+                while (true)
                 {
-                    Console.WriteLine("Code verified successfully!");
+                    string code = Console.ReadLine();
+                    if (generator.CheckCode(code))
+                    {
+                        Console.WriteLine("Code verified successfully!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Not allowed.");
+                    }
                 }
-                else
-                {
-                    Console.WriteLine("Not allowed.");
-                }
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"ArgumentException: {ex.Message}");
+            }
+            catch (System.IO.IOException ex)
+            {
+                Console.WriteLine($"IOException: {ex.Message}");
+            }
+            catch (System.Security.Cryptography.CryptographicException ex)
+            {
+                Console.WriteLine($"CryptographicException: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unhandled exception: {ex.Message}");
             }
         }
     }

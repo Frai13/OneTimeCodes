@@ -18,8 +18,7 @@ namespace Tests
         public void Setup()
         {
             generator = null;
-            File.Delete(TokenGenerator.CodesFileName);
-            File.Delete(TokenGenerator.HashFileName);
+            TestsUtils.FileDelete(TokenGenerator.CodesFileName);
         }
 
         [Test]

@@ -22,7 +22,7 @@ namespace Tests
         [SetUp]
         public void Setup()
         {
-            File.Delete(defaultFileName);
+            TestsUtils.FileDelete(defaultFileName);
             RandomGenerator = new Rfc2898DeriveBytes("", saltDefault, 1000, HashAlgorithmName.SHA256);
 
             key = RandomGenerator.GetBytes(32);
@@ -64,7 +64,7 @@ namespace Tests
 
             string content = Encryptor.Decrypt(key, iv, defaultFileName);
             Assert.IsTrue(content == defaultContent);
-            File.Delete($"{defaultFileName}_tmp");
+            TestsUtils.FileDelete($"{defaultFileName}_tmp");
         }
 
         [Test]

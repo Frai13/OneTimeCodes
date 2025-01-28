@@ -53,7 +53,7 @@ namespace OneTimeCodes
         {
             if (!File.Exists(filePath)) return "";
 
-            using (FileStream fsInput = new FileStream(filePath, FileMode.Open))
+            using (FileStream fsInput = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
                 byte[] salt = new byte[16];
                 fsInput.Read(salt, 0, salt.Length);

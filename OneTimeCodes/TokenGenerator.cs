@@ -34,8 +34,8 @@ namespace OneTimeCodes
         protected CodeType CodeType;
 
         internal List<byte> BytesSaved;
-        internal static string CodesFileName = "codes";
-        internal static string HashFileName = "hash";
+        internal static string CodesFileName = "_codes_";
+        internal const string UserCodesFileName = "codes";
 
         private byte[] Salt;
         private byte[] EncryptionKey;
@@ -136,14 +136,9 @@ namespace OneTimeCodes
         /// <returns>True if success</returns>
         /// <exception cref="System.IO.IOException">Thrown if file is in use</exception>
         /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
-        public bool GenerateCodes(uint start, uint number, string path = "")
+        public bool GenerateCodes(uint start, uint number, string filePath = UserCodesFileName)
         {
-            path = path == "" ? "./" : path;
-            if (!Directory.Exists(path))
-            {
-                return false;
-            }
-            path = !path.EndsWith("/") && !path.EndsWith("\\") ? path + "/" : path;
+            if (string.IsNullOrWhiteSpace(filePath)) return false;
 
             List<string> codes = GetCodes(start, number);
             List<CodeContainer> codeList = new List<CodeContainer>();
@@ -152,7 +147,7 @@ namespace OneTimeCodes
                 codeList.Add(new CodeContainer((uint)i + start, codes.ElementAt(i)));
             }
 
-            return Serialize(codeList, path);
+            return Serialize(codeList, filePath);
         }
 
         /// <summary>
@@ -164,7 +159,7 @@ namespace OneTimeCodes
         /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
         public bool CheckCode(string code)
         {
-            List<CodeContainer> codeList = Deserialize();
+            List<CodeContainer> codeList = Deserialize(CodesFileName);
             if (!codeList.Any()) return false;
 
             var codeContainer = codeList.Where(x => x.Code == code);
@@ -184,12 +179,7 @@ namespace OneTimeCodes
         /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
         public bool BlockCode(string code)
         {
-            string hash = GetHash(CodesFileName);
-            if (hash == "") return false;
-            string content = Encryptor.Decrypt(EncryptionKey, EncryptionIv, HashFileName);
-            if (hash != content) return false;
-
-            List<CodeContainer> codeList = Deserialize();
+            List<CodeContainer> codeList = Deserialize(CodesFileName);
             if (!codeList.Any()) return false;
 
             var codeContainer = codeList.Select((v, i) => new { v, i }).Where(x => x.v.Code == code);
@@ -197,40 +187,47 @@ namespace OneTimeCodes
 
             codeList.RemoveAt(codeContainer.First().i);
 
-            return Serialize(codeList, "");
+            return Serialize(codeList, CodesFileName);
         }
-        
 
-        internal bool Serialize(List<CodeContainer> codeList, string path)
+        /// <summary>
+        /// Add new codes to already allowed ones from file <paramref name="filePath"/>
+        /// </summary>
+        /// <param name="filePath">Path to the file that contains new codes</param>
+        /// <returns>True if success, False otherwise</returns>
+        /// <exception cref="System.IO.IOException">Thrown if file is in use</exception>
+        /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
+        public bool AddCodes(string filePath)
+        {
+            List<CodeContainer> codeListStored = Deserialize(CodesFileName);
+
+            List<CodeContainer> codeListNew = Deserialize(filePath);
+            if (!codeListNew.Any()) return false;
+
+            List<CodeContainer> codeList = codeListStored.Union(codeListNew, new CodeContainerEquality()).ToList();
+
+            return Serialize(codeList, CodesFileName);
+        }
+
+        internal bool Serialize(List<CodeContainer> codeList, string filePath)
         {
             string jsonString = JsonConvert.SerializeObject(codeList);
 
-            File.WriteAllText($"{path}{CodesFileName}", jsonString);
-            Encryptor.Encrypt(EncryptionKey, EncryptionIv, Salt, $"{path}{CodesFileName}");
+            if (File.Exists(filePath)) File.SetAttributes(filePath, File.GetAttributes(filePath) & ~FileAttributes.ReadOnly & ~FileAttributes.Hidden);
+            File.WriteAllText(filePath, jsonString);
+            Encryptor.Encrypt(EncryptionKey, EncryptionIv, Salt, filePath);
+            File.SetAttributes(filePath, FileAttributes.ReadOnly | FileAttributes.Hidden);
 
-            string hash = GetHash($"{path}{CodesFileName}");
-            File.WriteAllText($"{path}{HashFileName}", hash);
-            return Encryptor.Encrypt(EncryptionKey, EncryptionIv, Salt, $"{path}{HashFileName}");
+            return true;
         }
 
-        internal List<CodeContainer> Deserialize()
+        internal List<CodeContainer> Deserialize(string filePath)
         {
             List<CodeContainer> codeList = new List<CodeContainer>();
-            if (!File.Exists(CodesFileName)) return codeList;
-            string jsonString = Encryptor.Decrypt(EncryptionKey, EncryptionIv, CodesFileName); ;
+            if (!File.Exists(filePath)) return codeList;
+            string jsonString = Encryptor.Decrypt(EncryptionKey, EncryptionIv, filePath);
             codeList = JsonConvert.DeserializeObject<List<CodeContainer>>(jsonString);
             return codeList;
-        }
-
-        private string GetHash(string fileName)
-        {
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                using (FileStream fs = File.OpenRead(fileName))
-                {
-                    return string.Concat(sha256.ComputeHash(fs).Select(x => x.ToString("x2")));
-                }
-            }
         }
     }
 }

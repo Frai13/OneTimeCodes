@@ -18,8 +18,8 @@ namespace Tests
         public void Setup()
         {
             generator = null;
-            File.Delete(TokenGenerator.CodesFileName);
-            File.Delete(TokenGenerator.HashFileName);
+            TestsUtils.FileDelete(TokenGenerator.CodesFileName);
+            TestsUtils.FileDelete($"{TokenGenerator.CodesFileName}_tmp");
         }
 
         [Test]
@@ -27,16 +27,10 @@ namespace Tests
         {
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
+            File.Move(TokenGenerator.UserCodesFileName, TokenGenerator.CodesFileName);
 
             Assert.IsTrue(generator.CheckCode("9?:O)R"));
-            File.Delete(TokenGenerator.CodesFileName);
-            Assert.IsFalse(generator.CheckCode(";oy@+w"));
-            Assert.IsFalse(generator.CheckCode(",RXD~="));
-
-            generator.GenerateCodes(0, 3);
-
-            Assert.IsTrue(generator.CheckCode("9?:O)R"));
-            File.Delete(TokenGenerator.HashFileName);
+            TestsUtils.FileDelete(TokenGenerator.CodesFileName);
             Assert.IsFalse(generator.CheckCode(";oy@+w"));
             Assert.IsFalse(generator.CheckCode(",RXD~="));
         }
@@ -46,6 +40,7 @@ namespace Tests
         {
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
+            File.Move(TokenGenerator.UserCodesFileName, TokenGenerator.CodesFileName);
 
             string content = File.ReadAllText(TokenGenerator.CodesFileName);
             Assert.IsFalse(content.Contains("9?:O)R"));
@@ -55,25 +50,15 @@ namespace Tests
         }
 
         [Test]
-        public void TestFileHashDelete()
+        public void TestFileDifferentPass()
         {
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
-
-            File.Delete(TokenGenerator.CodesFileName);
-            Assert.IsFalse(generator.CheckCode("9?:O)R"));
-        }
-
-        [Test]
-        public void TestFileHashDifferentPass()
-        {
-            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
-            generator.GenerateCodes(0, 3);
-            File.Copy(TokenGenerator.CodesFileName, $"{TokenGenerator.CodesFileName}_tmp");
+            File.Copy(TokenGenerator.UserCodesFileName, $"{TokenGenerator.CodesFileName}_tmp");
 
             generator = new TokenGenerator("test", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
-            File.Delete(TokenGenerator.CodesFileName);
+            TestsUtils.FileDelete(TokenGenerator.UserCodesFileName);
             File.Move($"{TokenGenerator.CodesFileName}_tmp", TokenGenerator.CodesFileName);
             Assert.Throws<System.Security.Cryptography.CryptographicException>(() => { generator.CheckCode("S#exOP"); });
         }
@@ -83,13 +68,11 @@ namespace Tests
         {
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
-
-            File.Copy(TokenGenerator.CodesFileName, $"{TokenGenerator.CodesFileName}_tmp");
-            Assert.IsTrue(generator.CheckCode("9?:O)R"));
-            File.Delete(TokenGenerator.CodesFileName);
-            File.Move($"{TokenGenerator.CodesFileName}_tmp", TokenGenerator.CodesFileName);
-            Assert.IsFalse(generator.CheckCode(";oy@+w"));
-            Assert.IsFalse(generator.CheckCode(",RXD~="));
+ 
+            Assert.Throws<UnauthorizedAccessException>(() =>
+            {
+                File.WriteAllText(TokenGenerator.UserCodesFileName, "Overwrite text.");
+            });
         }
     }
 }
