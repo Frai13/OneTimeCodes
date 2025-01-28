@@ -213,8 +213,10 @@ namespace OneTimeCodes
         {
             string jsonString = JsonConvert.SerializeObject(codeList);
 
+            if (File.Exists(filePath)) File.SetAttributes(filePath, File.GetAttributes(filePath) & ~FileAttributes.ReadOnly & ~FileAttributes.Hidden);
             File.WriteAllText(filePath, jsonString);
             Encryptor.Encrypt(EncryptionKey, EncryptionIv, Salt, filePath);
+            File.SetAttributes(filePath, FileAttributes.ReadOnly | FileAttributes.Hidden);
 
             return true;
         }

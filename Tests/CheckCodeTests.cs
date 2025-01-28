@@ -18,7 +18,7 @@ namespace Tests
         public void Setup()
         {
             generator = null;
-            File.Delete(TokenGenerator.CodesFileName);
+            TestsUtils.FileDelete(TokenGenerator.CodesFileName);
         }
 
         [Test]
@@ -60,7 +60,7 @@ namespace Tests
 
             generator = new TokenGenerator("test", saltDefault, 1000, 6, CodeType.ALL);
             generator.GenerateCodes(0, 3);
-            File.Delete(TokenGenerator.CodesFileName);
+            TestsUtils.FileDelete(TokenGenerator.CodesFileName);
             File.Move(TokenGenerator.UserCodesFileName, TokenGenerator.CodesFileName);
             Assert.IsTrue(generator.CheckCode("S#exOP"));
             Assert.IsTrue(generator.CheckCode("FML[Co"));

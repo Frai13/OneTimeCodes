@@ -18,8 +18,8 @@ namespace Tests
         public void Setup()
         {
             generator = null;
-            File.Delete(TokenGenerator.CodesFileName);
-            File.Delete("codes_test");
+            TestsUtils.FileDelete(TokenGenerator.CodesFileName);
+            TestsUtils.FileDelete("codes_test");
         }
 
         [Test]
@@ -40,7 +40,7 @@ namespace Tests
         {
             generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
 
-            File.Delete(TokenGenerator.UserCodesFileName);
+            TestsUtils.FileDelete(TokenGenerator.UserCodesFileName);
             Assert.IsFalse(generator.AddCodes(TokenGenerator.UserCodesFileName));
         }
 
