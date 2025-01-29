@@ -24,7 +24,7 @@ namespace Tests
         [Test]
         public void TestBlockCodes()
         {
-            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
+            generator = new TokenGenerator("", saltDefault, 1000, 6, TokenGenerator.CodesFileName, CodeType.ALL);
             generator.GenerateCodes(0, 3);
             File.Move(TokenGenerator.UserCodesFileName, TokenGenerator.CodesFileName);
 
@@ -41,7 +41,7 @@ namespace Tests
         [Test]
         public void TestGetStoredCodes()
         {
-            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
+            generator = new TokenGenerator("", saltDefault, 1000, 6, TokenGenerator.CodesFileName, CodeType.ALL);
             generator.GenerateCodes(0, 3);
             File.Move(TokenGenerator.UserCodesFileName, TokenGenerator.CodesFileName);
 
@@ -58,7 +58,7 @@ namespace Tests
             Assert.IsFalse(generator.CheckCode("FML[Co"));
             Assert.IsFalse(generator.CheckCode("]aR{>H"));
 
-            generator = new TokenGenerator("test", saltDefault, 1000, 6, CodeType.ALL);
+            generator = new TokenGenerator("test", saltDefault, 1000, 6, TokenGenerator.CodesFileName, CodeType.ALL);
             generator.GenerateCodes(0, 3);
             TestsUtils.FileDelete(TokenGenerator.CodesFileName);
             File.Move(TokenGenerator.UserCodesFileName, TokenGenerator.CodesFileName);
@@ -78,7 +78,7 @@ namespace Tests
                 dir.Delete(true);
             }
 
-            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
+            generator = new TokenGenerator("", saltDefault, 1000, 6, TokenGenerator.CodesFileName, CodeType.ALL);
 
             Directory.CreateDirectory("example/");
             Assert.IsTrue(generator.GenerateCodes(0, 3, "example/codes"));
