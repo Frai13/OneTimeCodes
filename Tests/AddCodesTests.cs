@@ -121,17 +121,20 @@ namespace Tests
         [Test]
         public void TestAddCodesReallocatedFile()
         {
-            TestsUtils.FileDelete("path_to_file/codes_file");
+            string fileName = "path_to_file/codes_file";
+            if (File.Exists(fileName)) TestsUtils.FileDelete(fileName);
             Directory.CreateDirectory("path_to_file");
-            generator = new TokenGenerator("", saltDefault, 1000, 6, "path_to_file/codes_file");
+            generator = new TokenGenerator("", saltDefault, 1000, 6, fileName);
             generator.GenerateCodes(0, 3);
 
             Assert.IsTrue(generator.AddCodes(TokenGenerator.UserCodesFileName));
             Assert.IsTrue(generator.CheckCode("9?:O)R"));
             Assert.IsTrue(generator.CheckCode(";oy@+w"));
-            TestsUtils.FileDelete("path_to_file/codes_file");
+            TestsUtils.FileDelete(fileName);
             Assert.IsFalse(generator.CheckCode(",RXD~="));
             Assert.IsFalse(generator.CheckCode("9?:O)R"));
+
+            if (File.Exists(fileName)) TestsUtils.FileDelete(fileName);
         }
     }
 }
