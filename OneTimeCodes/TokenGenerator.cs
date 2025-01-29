@@ -32,9 +32,10 @@ namespace OneTimeCodes
         protected Rfc2898DeriveBytes RandomGenerator;
         protected uint Length;
         protected CodeType CodeType;
+        protected string InternalCodesFilename;
 
         internal List<byte> BytesSaved;
-        internal static string CodesFileName = "_codes_";
+        internal const string CodesFileName = "_codes_";
         internal const string UserCodesFileName = "codes";
 
         private byte[] Salt;
@@ -50,10 +51,11 @@ namespace OneTimeCodes
         /// <param name="salt">Salt used to generate random values. Length must be 16.</param>
         /// <param name="iterations">Iterations used to generate random values</param>
         /// <param name="length">Length of the generated code</param>
+        /// <param name="codesFilename">Codes filename where available codes will be stored</param>
         /// <param name="codeType"><see cref="CodeType"/> enum</param>
         /// <exception cref="System.ArgumentException">Thrown if salt length is not 16 and by Rfc2898DeriveBytes</exception>
         /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown by Rfc2898DeriveBytes</exception>
-        public TokenGenerator(string password, byte[] salt, int iterations, uint length, CodeType codeType = CodeType.ALL)
+        public TokenGenerator(string password, byte[] salt, int iterations, uint length, string codesFilename = CodesFileName, CodeType codeType = CodeType.ALL)
         {
             if (salt.Length != 16) throw new System.ArgumentException("Salt length must be 16");
 
@@ -61,8 +63,9 @@ namespace OneTimeCodes
             this.RandomGenerator = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256);
             this.Length = length;
             this.CodeType = codeType;
-            this.BytesSaved = new List<byte>();
+            this.InternalCodesFilename = codesFilename;
 
+            this.BytesSaved = new List<byte>();
             this.EncryptionKey = RandomGenerator.GetBytes(EncryptionKeyLength);
             this.EncryptionIv = RandomGenerator.GetBytes(EncryptionIvLength);
         }
@@ -159,7 +162,7 @@ namespace OneTimeCodes
         /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
         public bool CheckCode(string code)
         {
-            List<CodeContainer> codeList = Deserialize(CodesFileName);
+            List<CodeContainer> codeList = Deserialize(InternalCodesFilename);
             if (!codeList.Any()) return false;
 
             var codeContainer = codeList.Where(x => x.Code == code);
@@ -179,7 +182,7 @@ namespace OneTimeCodes
         /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
         public bool BlockCode(string code)
         {
-            List<CodeContainer> codeList = Deserialize(CodesFileName);
+            List<CodeContainer> codeList = Deserialize(InternalCodesFilename);
             if (!codeList.Any()) return false;
 
             var codeContainer = codeList.Select((v, i) => new { v, i }).Where(x => x.v.Code == code);
@@ -187,7 +190,7 @@ namespace OneTimeCodes
 
             codeList.RemoveAt(codeContainer.First().i);
 
-            return Serialize(codeList, CodesFileName);
+            return Serialize(codeList, InternalCodesFilename);
         }
 
         /// <summary>
@@ -199,14 +202,14 @@ namespace OneTimeCodes
         /// <exception cref="System.Security.Cryptography.CryptographicException">Thrown if file is encrypted with different parameters</exception>
         public bool AddCodes(string filePath)
         {
-            List<CodeContainer> codeListStored = Deserialize(CodesFileName);
+            List<CodeContainer> codeListStored = Deserialize(InternalCodesFilename);
 
             List<CodeContainer> codeListNew = Deserialize(filePath);
             if (!codeListNew.Any()) return false;
 
             List<CodeContainer> codeList = codeListStored.Union(codeListNew, new CodeContainerEquality()).ToList();
 
-            return Serialize(codeList, CodesFileName);
+            return Serialize(codeList, InternalCodesFilename);
         }
 
         internal bool Serialize(List<CodeContainer> codeList, string filePath)

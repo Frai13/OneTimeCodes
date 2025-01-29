@@ -25,7 +25,7 @@ namespace Tests
         [Test]
         public void TestDeleteFile()
         {
-            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
+            generator = new TokenGenerator("", saltDefault, 1000, 6, TokenGenerator.CodesFileName, CodeType.ALL);
             generator.GenerateCodes(0, 3);
             File.Move(TokenGenerator.UserCodesFileName, TokenGenerator.CodesFileName);
 
@@ -38,25 +38,25 @@ namespace Tests
         [Test]
         public void TestFileEncrypted()
         {
-            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
+            generator = new TokenGenerator("", saltDefault, 1000, 6, TokenGenerator.CodesFileName, CodeType.ALL);
             generator.GenerateCodes(0, 3);
             File.Move(TokenGenerator.UserCodesFileName, TokenGenerator.CodesFileName);
 
             string content = File.ReadAllText(TokenGenerator.CodesFileName);
             Assert.IsFalse(content.Contains("9?:O)R"));
 
-            generator = new TokenGenerator("test", saltDefault, 1000, 6, CodeType.ALL);
+            generator = new TokenGenerator("test", saltDefault, 1000, 6, TokenGenerator.CodesFileName, CodeType.ALL);
             Assert.Throws<System.Security.Cryptography.CryptographicException>(() => { generator.CheckCode("9?:O)R"); });
         }
 
         [Test]
         public void TestFileDifferentPass()
         {
-            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
+            generator = new TokenGenerator("", saltDefault, 1000, 6, TokenGenerator.CodesFileName, CodeType.ALL);
             generator.GenerateCodes(0, 3);
             File.Copy(TokenGenerator.UserCodesFileName, $"{TokenGenerator.CodesFileName}_tmp");
 
-            generator = new TokenGenerator("test", saltDefault, 1000, 6, CodeType.ALL);
+            generator = new TokenGenerator("test", saltDefault, 1000, 6, TokenGenerator.CodesFileName, CodeType.ALL);
             generator.GenerateCodes(0, 3);
             TestsUtils.FileDelete(TokenGenerator.UserCodesFileName);
             File.Move($"{TokenGenerator.CodesFileName}_tmp", TokenGenerator.CodesFileName);
@@ -66,7 +66,7 @@ namespace Tests
         [Test]
         public void TestFileCopy()
         {
-            generator = new TokenGenerator("", saltDefault, 1000, 6, CodeType.ALL);
+            generator = new TokenGenerator("", saltDefault, 1000, 6, TokenGenerator.CodesFileName, CodeType.ALL);
             generator.GenerateCodes(0, 3);
  
             Assert.Throws<UnauthorizedAccessException>(() =>
